@@ -31,7 +31,7 @@ impl<'de: 'r, 'r, R: Read + ?Sized> de::MapAccess<'de> for MapAccess<'r, R> {
     where
         K: DeserializeSeed<'de>,
     {
-        self.value_tag = Tag::from_u8(self.reader.read_u8()?)?;
+        self.value_tag = Tag::from_u8(self.reader.read_u8().unwrap_or(0))?;
 
         if self.value_tag == Tag::End {
             return Ok(None);

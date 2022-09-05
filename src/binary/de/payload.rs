@@ -32,7 +32,7 @@ impl<'de: 'w, 'w, R: Read + ?Sized> de::Deserializer<'de> for PayloadDeserialize
         V: Visitor<'de>,
     {
         match self.tag {
-            Tag::End => unreachable!("invalid payload tag"),
+            Tag::End => visitor.visit_map(MapAccess::new(self.reader, &[])),
             Tag::Byte => visitor.visit_i8(self.reader.read_i8()?),
             Tag::Short => visitor.visit_i16(self.reader.read_i16::<BigEndian>()?),
             Tag::Int => visitor.visit_i32(self.reader.read_i32::<BigEndian>()?),

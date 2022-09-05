@@ -39,6 +39,10 @@ impl<R: Read> RootDeserializer<R> {
     fn read_name(&mut self) -> Result<Tag, Error> {
         let tag = Tag::from_u8(self.reader.read_u8()?)?;
 
+        if tag == Tag::End {
+            return Ok(tag)
+        }
+
         if tag != Tag::Compound {
             return Err(Error::new_owned(format!(
                 "unexpected tag `{tag}` (root value must be a compound)"
