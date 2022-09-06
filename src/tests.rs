@@ -203,3 +203,119 @@ fn value_from_json() {
 
     assert_eq!(struct_, struct_de);
 }
+
+/// Serves as documented examples of NBT files.
+mod binary {
+
+    use super::*;
+    use pretty_assertions::assert_eq;
+
+    #[test]
+    fn simple_struct() {
+        #[derive(Serialize)]
+        struct A {
+            a: i8,
+            bc: i16,
+        }
+
+        let s = A { a: 10, bc: 258 };
+
+        let mut buf = Vec::new();
+
+        to_writer(&mut buf, &s).unwrap();
+
+        #[rustfmt::skip]
+        assert_eq!(
+            buf[..],
+            [
+                10_u8,  // Compound
+                0, 0,   // Compound's name has length of 0 (unnamed)
+                // First field
+                1,      // Signed byte
+                0, 1,   // The name is 1 byte long
+                b'a',   // The name is 'a'
+                10,     // Value is 10
+                // Second field
+                2,      // Signed short
+                0, 2,   // The name is 2 bytes long 
+                b'b', b'c',     // The name is 'bc'
+                1, 2,   // Value is 258 (big endian) 
+                0,      // End of compound (root)
+            ]
+        );
+    }
+
+    #[test]
+    fn simple_array() {
+        #[derive(Serialize)]
+        struct A {
+            #[serde(with = "int_array")]
+            x: Vec<i32>,
+        }
+
+        let s = A { x: vec![1, 2, 3] };
+
+        let mut buf = Vec::new();
+
+        to_writer(&mut buf, &s).unwrap();
+
+        #[rustfmt::skip]
+        assert_eq!(
+            buf[..],
+            [
+                10_u8,  // Compound
+                0, 0,   // Compound's name has length of 0 (unnamed)
+                // First field
+                11,         // Int array
+                0, 1,       // The name is 1 byte long
+                b'x',       // The name is 'x'
+                0, 0, 0, 3, // Array contains 3 items
+                0, 0, 0, 1, // First item
+                0, 0, 0, 2, // Second item
+                0, 0, 0, 3, // Third item
+                0,      // End of compound (root)
+            ]
+        );
+    }
+
+    #[test]
+    fn nested_compounds() {
+        #[derive(Serialize)]
+        struct Outer {
+            field: Inner,
+        }
+
+        #[derive(Serialize)]
+        struct Inner {
+            byte: i8,
+        }
+
+        let s = Outer {
+            field: Inner { byte: 8 },
+        };
+
+        let mut buf = Vec::new();
+
+        to_writer(&mut buf, &s).unwrap();
+
+        #[rustfmt::skip]
+        assert_eq!(
+            buf[..],
+            [
+                10_u8,  // Compound
+                0, 0,   // Compound's name has length of 0 (unnamed)
+                // First field
+                10,         // Compound
+                0, 5,       // Name is 'field'
+                b'f', b'i', b'e', b'l', b'd',
+                // Inner first field
+                1,
+                0, 4,
+                b'b', b'y', b't', b'e',
+                8,
+                0,      // End of compound (inner)
+                0,      // End of compound (root)
+            ]
+        );
+    }
+}
