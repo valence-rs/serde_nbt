@@ -6,7 +6,7 @@ repository = "https://github.com/rj00a/valence/tree/main/serde_nbt"
 readme = "README.md"
 license = "MIT"
 keywords = ["nbt", "minecraft", "serde", "serialization"]
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Ryan Johnson <ryanj00a@gmail.com>"]
 edition = "2021"
 
